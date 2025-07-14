@@ -30,10 +30,10 @@ jobs:
           mkdir -p build
 
           # Linux amd64（静态编译）
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o tgbot-amd64 ./cmd
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o build/tgbot-amd64 ./cmd
 
           # Windows amd64（静态编译）
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o tgbot-amd64.exe ./cmd
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o build/tgbot-amd64.exe ./cmd
 
       - name: 生成 SHA256 校验和
         run: |
