@@ -38,7 +38,7 @@ jobs:
       - name: 生成 SHA256 校验和
         run: |
           cd build
-          sha256sum tgbot-* > checksums.txt
+          sha256sum tgbot* > checksums.txt
           cat checksums.txt
 
       - name: 获取版本号
