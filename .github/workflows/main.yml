@@ -1,0 +1,79 @@
+name: 发布二进制文件
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '版本号 (例如: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整提交记录和标签
+
+      - name: 设置 Go 环境
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+
+      - name: 编译 Linux 和 Windows 可执行文件
+        run: |
+          mkdir -p build
+
+          # Linux amd64（静态编译）
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o tgbot-amd64 ./cmd
+
+          # Windows amd64（静态编译）
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o tgbot-amd64.exe .cmd
+
+      - name: 生成 SHA256 校验和
+        run: |
+          cd build
+          sha256sum main-* > checksums.txt
+          cat checksums.txt
+
+      - name: 获取版本号
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "版本号: $VERSION"
+
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "上一个标签: $PREV_TAG"
+
+          if [ -n "$PREV_TAG" ]; then
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "## 更新内容" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            git log --pretty=format:"- %s" "$PREV_TAG"..HEAD >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changelog=## 首次发布" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 发布到 GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+          files: |
+            build/tgbot*
+            build/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
