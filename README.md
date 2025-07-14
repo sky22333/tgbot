@@ -25,6 +25,7 @@
 
 1.  根据 `config.toml` 的格式创建并填写您自己的配置文件。
 2.  在项目根目录下执行 `go run ./cmd` 启动机器人。
+3.  构建：`GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o tgbot ./cmd`
 
 ## 鸣谢
 [telebot v3](https://github.com/tucnak/telebot)
