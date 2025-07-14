@@ -1,0 +1,8 @@
+# 机器人Token
+bot_token = ""
+
+# 允许使用机器人的用户ID列表，空表示不限制，逗号分割
+allowed_user_ids = []
+
+# 允许使用机器人的群组ID列表
+allowed_group_ids = []
